@@ -1,0 +1,243 @@
+import { useState } from 'react'
+import { Button } from "/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "/components/ui/card"
+import { Input } from "/components/ui/input"
+import { Label } from "/components/ui/label"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "/components/ui/table"
+import { User, Plus, Trash, Edit, Search } from "lucide-react"
+
+type Member = {
+  id: string
+  name: string
+  email: string
+  phone: string
+  joinDate: string
+  membershipType: string
+  status: 'active' | 'inactive'
+}
+
+export default function GymAdminDashboard() {
+  const [members, setMembers] = useState<Member[]>([
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '555-1234',
+      joinDate: '2023-01-15',
+      membershipType: 'Premium',
+      status: 'active'
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane@example.com',
+      phone: '555-5678',
+      joinDate: '2023-02-20',
+      membershipType: 'Standard',
+      status: 'active'
+    },
+    {
+      id: '3',
+      name: 'Mike Johnson',
+      email: 'mike@example.com',
+      phone: '555-9012',
+      joinDate: '2023-03-10',
+      membershipType: 'Premium',
+      status: 'inactive'
+    }
+  ])
+
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
+  const [newMember, setNewMember] = useState<Omit<Member, 'id'>>({
+    name: '',
+    email: '',
+    phone: '',
+    joinDate: new Date().toISOString().split('T')[0],
+    membershipType: 'Standard',
+    status: 'active'
+  })
+
+  const filteredMembers = members.filter(member =>
+    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.phone.includes(searchTerm)
+  )
+
+  const handleAddMember = () => {
+    if (!newMember.name || !newMember.email || !newMember.phone) return
+    
+    setMembers([...members, {
+      ...newMember,
+      id: (members.length + 1).toString()
+    }])
+    setNewMember({
+      name: '',
+      email: '',
+      phone: '',
+      joinDate: new Date().toISOString().split('T')[0],
+      membershipType: 'Standard',
+      status: 'active'
+    })
+    setIsAddMemberOpen(false)
+  }
+
+  const handleDeleteMember = (id: string) => {
+    setMembers(members.filter(member => member.id !== id))
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">GYM Management System</h1>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">Admin Dashboard</span>
+            <Button variant="outline" size="sm">
+              <User className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800">Member Management</h2>
+          <Button onClick={() => setIsAddMemberOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Member
+          </Button>
+        </div>
+
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search members by name, email or phone"
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {isAddMemberOpen && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Add New Member</CardTitle>
+              <CardDescription>Fill in the details below to add a new gym member</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={newMember.name}
+                    onChange={(e) => setNewMember({...newMember, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newMember.email}
+                    onChange={(e) => setNewMember({...newMember, email: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={newMember.phone}
+                    onChange={(e) => setNewMember({...newMember, phone: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="membershipType">Membership Type</Label>
+                  <select
+                    id="membershipType"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={newMember.membershipType}
+                    onChange={(e) => setNewMember({...newMember, membershipType: e.target.value})}
+                  >
+                    <option value="Standard">Standard</option>
+                    <option value="Premium">Premium</option>
+                    <option value="VIP">VIP</option>
+                  </select>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsAddMemberOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddMember}>
+                Add Member
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Members List</CardTitle>
+            <CardDescription>View and manage all gym members</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Join Date</TableHead>
+                  <TableHead>Membership</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.length > 0 ? (
+                  filteredMembers.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell className="font-medium">{member.name}</TableCell>
+                      <TableCell>{member.email}</TableCell>
+                      <TableCell>{member.phone}</TableCell>
+                      <TableCell>{member.joinDate}</TableCell>
+                      <TableCell>{member.membershipType}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs ${member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {member.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteMember(member.id)}>
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      No members found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  )
+}
